@@ -15,6 +15,9 @@
     - name: install epel-release
       yum: name=epel-release state=present
       
+    - name: install net-tools
+      yum: name=net-tools state=present
+      
     - name: add hosts
       lineinfile:
         path: /etc/hosts
@@ -50,16 +53,19 @@
         src: "/home/{{ item }}"
         dest: /etc/nginx/
       with_items:
-        - nginx.cofg
-        - server.loadbalance.vegas-solution.com
+        - nginx.conf
+        - service.vegas-solution.com
         
+    - name: makr directory
+      shell: mkdir /etc/nginx/ssl
+      
     - name: copy directory
-      synchronize:
-        src: /home/ssl.tar.gz
-        dest: /etc/nginx/
+      unarchive:
+        src: /home/ssl.tar
+        dest: /etc/nginx/ssl
         
     - name: copy haproxy file
-     copy:
+      copy:
        src: /home/haproxy.cfg
        dest: /etc/haproxy/
        
