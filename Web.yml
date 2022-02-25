@@ -8,17 +8,21 @@
         path: /etc/sysconfig/selinux
         regexp: "SELINUX=enforcing"
         replace: "SELINUX=disabled"
+        
     - name: yum update
       yum: name='*' state=latest
+      
     - name: install epel-release
       yum: name=epel-release state=present
+      
     - name: add hosts
       lineinfile:
         path: /etc/hosts
         insertafter: 'localhost6.localdomain6'
-        line: "192.168.100.75 Web
-               192.168.100.73 Was1
-               192.168.100.88 DB1"
+        line: |
+          192.168.100.75 Web
+          192.168.100.73 Was1
+          192.168.100.88 DB1
       
 - name: Web Server Setting
   hosts: Web
@@ -60,8 +64,7 @@
        dest: /etc/haproxy/
        
     - name: nginx start
-      service:
-        name:
-          - nginx
-          - haproxy
-        state: started
+      service: name=nginx state=started
+      
+    - name: haproxy start
+      service: name=haproxy state=started
