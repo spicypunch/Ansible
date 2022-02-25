@@ -56,7 +56,7 @@
         - nginx.conf
         - service.vegas-solution.com
         
-    - name: makr directory
+    - name: make directory
       shell: mkdir /etc/nginx/ssl
       
     - name: copy directory
