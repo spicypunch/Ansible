@@ -62,6 +62,6 @@
           
     - name: chanege pdns.conf
       replace:
-        path: /etc/sysconfig/selinux
+        path: /etc/pdns/pdns.conf
         regexp: "launch=bind"
         replace: "#launch=bind"
