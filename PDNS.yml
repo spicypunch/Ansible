@@ -37,6 +37,7 @@
         name:
           - pdns
           - pdns-backend-mysql
+          - MariaDB-server
         state: present
         
     - name: add port
