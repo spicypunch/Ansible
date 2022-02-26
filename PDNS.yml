@@ -1,0 +1,66 @@
+---
+- name: PDNS Setting
+  hosts: pdns
+  gather_facts: no
+  tasks:
+    - name: selinux
+      replace:
+        path: /etc/sysconfig/selinux
+        regexp: "SELINUX=enforcing"
+        replace: "SELINUX=disabled"
+        
+    - name: yum update
+      yum: name='*' state=latest
+      
+    - name: install epel-release, net-tools
+      yum:
+        name:
+          - epel-release
+          - net-tools
+        state: latest
+        
+    - name: make MariaDB.repo file
+      shell: touch /etc/yum.repos.d/MariaDB.repo
+      
+    - name: update MariaDB.repo
+      lineinfile:
+        path: /etc/yum.repos.d/MariaDB.repo
+        line: |
+          [mariadb]
+          name = MariaDB
+          baseurl = http://yum.mariadb.org/10.0/centos7-amd64
+          gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+          gpgcheck=1
+          
+    - name: install pdns, MariaDB
+      yum:
+        name:
+          - pdns
+          - pdns-backend-mysql
+        state: present
+        
+    - name: add port
+      shell: |
+        firewall-cmd --permanent --add-port=53/tcp
+        firewall-cmd --permanent --add-port=53/udp
+     
+    - name: reload
+      shell: firewall-cmd --reload
+      
+    - name: update pdns.conf
+      lineinfile:
+        path: /etc/pdns/pdns.conf
+        insertafter: '# daemon'
+        line: |
+          launch=gmysql
+          gmysql-host=localhost
+          gmysql-user=pdns
+          gmysql-password=1234
+          gmysql-dbname=pdns
+          gmysql-dnssec=yes
+          
+    - name: chanege pdns.conf
+      replace:
+        path: /etc/sysconfig/selinux
+        regexp: "launch=bind"
+        replace: "#launch=bind"
