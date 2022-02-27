@@ -40,6 +40,12 @@
           - MariaDB-server
         state: present
         
+    - name: install firewalld
+      yum: name=firewalld state=present
+      
+    - name: start firewalld
+      service: name=firewalld statr=started
+        
     - name: add port
       shell: |
         firewall-cmd --permanent --add-port=53/tcp
