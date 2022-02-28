@@ -9,6 +9,18 @@
         regexp: "SELINUX=enforcing"
         replace: "SELINUX=disabled"
         
+    - name: swappiness
+      shell: |
+        sysctl vm.swappiness=0
+        sysctl -w vm.swappiness=0
+        echo 0 > /proc/sys/vm/swappiness
+    
+    - name: vi sysctl.conf
+      lineinfile:
+        path: /etc/sysctl.conf
+        insertafter: 'sysctl.d(5.)'
+        line: vm.swappiness=0
+    
     - name: yum update
       yum: name='*' state=latest
       
