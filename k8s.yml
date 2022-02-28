@@ -79,6 +79,7 @@
           - kubelet
           - kubeadm
           - kubectl --disableexcludes=kubernetes
+        state: latest
           
     - name: enable kubelet
       shell: systemctl enable --now kubelet
