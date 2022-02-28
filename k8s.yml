@@ -1,0 +1,101 @@
+---
+- name: k8s Setting
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: install docker
+      shell: |
+        curl -s https://get.docker.com | sudo sh
+        systemctl enable --now docker
+     
+    - name: disable selinux
+      shell: setenforce 0
+      
+    - name: disable selinux
+      replace:
+        path: /etc/sysconfig/selinux
+        regexp: "SELINUX=enforcing"
+        replace: "SELINUX=disabled"
+        
+    - name: swappiness
+      shell: |
+        swapoff -a
+        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+        
+    - name: disable firewall
+      shell: |
+        systemctl disable firewalld
+        systemctl stop firewalld
+    
+    - name: make conf
+      shell: touch /etc/modules-load.d/k8s.conf
+    
+    - name: iptables add conf
+      lineinfile:
+        path: /etc/modules-load.d/k8s.conf
+        line: br_netfilter
+
+    - name: make conf
+      shell: touch /etc/sysctl.d/k8s.conf
+    
+    - name: iptables add conf
+      lineinfile:
+        path: /etc/sysctl.d/k8s.conf
+        line: |
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.bridge.bridge-nf-call-iptables = 1
+        
+    - name: sysctl --system
+      shell: sudo sysctl --system
+      
+    - name: add hosts
+      lineinfile:
+        path: /etc/hosts
+        insertafter: 'localhost6.localdomain6'
+        line: |
+          192.168.0.136 k8s-master
+          192.168.0.137 k8s-node1
+          192.168.0.138 k8s-node2
+        
+    - name: make kubernetes.repo
+      shell: touch /etc/yum.repos.d/kubernetes.repo
+      
+    - name: update kubernetes.repo
+      lineinfile:
+        path: /etc/yum.repos.d/kubernetes.repo
+        line: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+          enabled=1
+          gpgcheck=1
+          repo_gpgcheck=1
+          gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+          exclude=kubelet kubeadm kubectl
+          
+    - name: install kubeadm, kubelet, kubectl
+      yum:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl --disableexcludes=kubernetes
+          
+    - name: enable kubelet
+      shell: systemctl enable --now kubelet
+      
+    - name: daemon.json
+      shell: touch /etc/docker/daemon.json
+      
+    - name: iptables add conf
+      lineinfile:
+        path: /etc/docker/daemon.json
+        line: |
+          {
+            "exec-opts": ["native.cgroupdriver=systemd"],
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m"
+            },
+            "storage-driver": "overlay2"
+          }
+      
