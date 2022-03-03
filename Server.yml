@@ -111,8 +111,13 @@
           - haproxy
         state: latest
   
-    - name: make MariaDB.repo file
-      shell: touch /etc/yum.repos.d/MariaDB.repo
+    - name: make MariaDB.repo
+      file:
+        path: /etc/yum.repos.d/MariaDB.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
       
     - name: update MariaDB.repo
       lineinfile:
@@ -127,8 +132,13 @@
     - name: install MariaDB
       yum: name=mariadb state=present
       
-    - name: make proxysql.repo file
-      shell: touch /etc/yum.repos.d/proxysql.repo
+    - name: make proxysql.repo
+      file:
+        path: /etc/yum.repos.d/proxysql.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
       
     - name: update proxysql.repo
       lineinfile:
@@ -211,8 +221,13 @@
   hosts: DB
   gather_facts: no
   tasks:
-    - name: make MariaDB.repo file
-      shell: touch /etc/yum.repos.d/MariaDB.repo
+    - name: make MariaDB.repo
+      file:
+        path: /etc/yum.repos.d/MariaDB.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
       
     - name: update MariaDB.repo
       lineinfile:
