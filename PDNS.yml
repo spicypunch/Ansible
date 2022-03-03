@@ -31,8 +31,13 @@
           - net-tools
         state: latest
         
-    - name: make MariaDB.repo file
-      shell: touch /etc/yum.repos.d/MariaDB.repo
+    - name: make MariaDB.repo
+      file:
+        path: /etc/yum.repos.d/MariaDB.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
       
     - name: update MariaDB.repo
       lineinfile:
