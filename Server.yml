@@ -79,7 +79,7 @@
         
     - name: make directory
       file:
-        path:/etc/nginx/ssl
+        path: /etc/nginx/ssl
         state: directory
         owner: root
         group: root
