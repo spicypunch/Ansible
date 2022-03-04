@@ -78,11 +78,16 @@
         - server.loadbalance.vegas-solution.com
         
     - name: make directory
-      shell: mkdir /etc/nginx/ssl
+      file:
+        path:/etc/nginx/ssl
+        state: directory
+        owner: root
+        group: root
+        mode: 0644
       
     - name: copy directory
       unarchive:
-        src: /home//web/ssl.tar
+        src: /home/web/ssl.tar
         dest: /etc/nginx/ssl
         
     - name: copy haproxy file
