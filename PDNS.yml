@@ -88,3 +88,8 @@
         path: /etc/pdns/pdns.conf
         regexp: "launch=bind"
         replace: "#launch=bind"
+        
+    - name: rsync pdns.sql
+      synchronize:
+        src: /home/pdns/pdns.sql
+        dest: /root
