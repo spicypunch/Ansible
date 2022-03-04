@@ -61,7 +61,7 @@
       yum: name=firewalld state=present
       
     - name: start firewalld
-      service: name=firewalld statr=started
+      service: name=firewalld state=started
         
     - name: add port
       shell: |
