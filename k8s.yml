@@ -42,9 +42,9 @@
         regexp: "/dev/mapper/centos-swap swap"
         replace: "#/dev/mapper/centos-swap swap"
         
-    - name: set swap
+    - name: set swap2
       lineinfile:
-        path: /etc/sysct.conf
+        path: /etc/sysctl.conf
         line: net.ipv4.ip_forward = 1
         
     - name: install docker
@@ -106,6 +106,9 @@
           - kubeadm
           - kubectl --disableexcludes=kubernetes
         state: present
+        
+    - name: install k8s2
+      shell: yum install -y kubectl --disableexcludes=kubernetes
         
     - name: enable kubelet
       shell: systemctl enable kubelet && systemctl start kubelet
