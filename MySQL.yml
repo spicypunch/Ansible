@@ -1,0 +1,277 @@
+---
+- name: server basic setting
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: selinux
+      replace:
+        path: /etc/sysconfig/selinux
+        regexp: "SELINUX=enforcing"
+        replace: "SELINUX=disabled"
+        
+    - name: swappiness
+      shell: |
+        sysctl vm.swappiness=0
+        sysctl -w vm.swappiness=0
+        echo 0 > /proc/sys/vm/swappiness
+    
+    - name: vi sysctl.conf
+      lineinfile:
+        path: /etc/sysctl.conf
+        insertafter: 'sysctl.d(5.)'
+        line: vm.swappiness=0
+        
+    - name: yum update
+      yum: name='*' state=latest
+      
+    - name: install epel-release, net-tools
+      yum:
+        name:
+          - epel-release
+          - net-tools
+        state: latest
+
+    
+      
+- name: ProxySQL / Redis
+  hosts: Was
+  gather_facts: no
+  tasks:
+    - name: install redis socat
+      yum:
+        name:
+          - redis
+          - socat
+        state: latest
+  
+    - name: make MariaDB.repo
+      file:
+        path: /etc/yum.repos.d/MariaDB.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
+      
+    - name: update MariaDB.repo
+      lineinfile:
+        path: /etc/yum.repos.d/MariaDB.repo
+        line: |
+          [mariadb]
+          name = MariaDB
+          baseurl = http://yum.mariadb.org/10.0/centos7-amd64
+          gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+          gpgcheck=1
+          
+    - name: install MariaDB
+      yum: name=mariadb state=present
+      
+    - name: make proxysql.repo
+      file:
+        path: /etc/yum.repos.d/proxysql.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
+      
+    - name: update proxysql.repo
+      lineinfile:
+        path: /etc/yum.repos.d/proxysql.repo
+        line: |
+          [proxysql_repo]
+          name= ProxySQL YUM repository
+          baseurl=http://repo.proxysql.com/ProxySQL/proxysql-1.4.x/centos/\$releasever
+          gpgcheck=1
+          gpgkey=http://repo.proxysql.com/ProxySQL/repo_pub_key
+          
+    - name: install proxysql
+      yum: name=proxysql state=present
+      
+    - name: mv proxysql.db
+      copy:
+        src: /home/was/proxysql.db
+        dest: /var/lib/proxysql/ 
+       
+    - name: add port
+      shell: |
+        firewall-cmd --permanent --add-port=6371/tcp
+        firewall-cmd --permanent --add-port=6370/tcp
+        firewall-cmd --permanent --add-port=6379/tcp
+        firewall-cmd --permanent --add-port=11001/tcp
+        firewall-cmd --permanent --add-port=16379/tcp
+        
+    - name: reload
+      shell: firewall-cmd --reload
+      
+    - name: copy redis.conf
+      copy:
+        src: /home/was/redis.conf
+        dest: /etc/
+       
+- name: Was redis master Setting
+  hosts: redis_master
+  gather_facts: no
+  tasks:
+    - name: delete redis.conf line
+      lineinfile:
+        path: /etc/redis.conf
+        regexp: 'slaveof'
+        state: absent
+
+
+
+- name: DB Server Setting
+  hosts: DB
+  gather_facts: no
+  tasks:
+    - name: add hosts
+      lineinfile:
+        path: /etc/hosts
+        insertafter: 'localhost6.localdomain6'
+        line: |
+          172.30.1.111 db1
+          172.30.1.111 db2
+          172.30.1.111 db3
+          172.30.1.111 db4
+          172.30.1.111 db5
+    - name: make MariaDB.repo
+      file:
+        path: /etc/yum.repos.d/MariaDB.repo
+        state: touch
+        owner: root
+        group: root
+        mode: 0644
+      
+    - name: update MariaDB.repo
+      lineinfile:
+        path: /etc/yum.repos.d/MariaDB.repo
+        line: |
+          [mariadb]
+          name = MariaDB
+          baseurl = http://yum.mariadb.org/10.0/centos7-amd64
+          gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+          gpgcheck=1
+          
+    - name: install socat MariaDB Galera-cluster
+      yum:
+        name:
+          - socat
+          - MariaDB-Galera-server
+          - MariaDB-client
+          - rsync
+          - galera
+        state: latest
+
+    - name: adduser
+      user:
+        name: test
+    
+    - name: user passwd
+      user: 
+        name: test
+        password: test
+
+    - name: mode for directory
+      file:
+        path: /home/test
+        mode: 0755
+
+    - name: add port
+      shell: |
+        firewall-cmd --permanent --add-port=3306/tcp
+        firewall-cmd --permanent --add-port=4444/tcp
+        firewall-cmd --permanent --add-port=4567/tcp
+        firewall-cmd --permanent --add-port=4568/tcp
+        firewall-cmd --permanent --add-port=3307/tcp
+        
+    - name: reload
+      shell: firewall-cmd --reload
+      
+    - name: copy server.cnf for cluster
+      copy:
+        src: /home/db/server.cnf
+        dest: /etc/my.cnf.d/
+        
+    - name: copy basic Database
+      copy:
+        src: /home/db/h00027.sql
+        dest: /var/lib/mysql
+        
+- name: update server.cnf for cluster
+  hosts: 172.30.1.112
+  gather_facts: no
+  tasks:
+    - name: replace server.cnf server-id
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "server-id=11"
+        replace: "server-id=12"
+    - name: replace server.cnf ip
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_address='172.30.1.111'"
+        replace: "wsrep_node_address='172.30.1.112'"
+    - name: replace server.cnf node_name
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_name='db1'"
+        replace: "wsrep_node_name='db2'"
+        
+- name: update server.cnf for cluster
+  hosts: 172.30.1.113
+  gather_facts: no
+  tasks:
+    - name: replace server.cnf server-id
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "server-id=11"
+        replace: "server-id=13"
+    - name: replace server.cnf ip
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_address='172.30.1.111'"
+        replace: "wsrep_node_address='172.30.1.113'"
+    - name: replace server.cnf node_name
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_name='db1'"
+        replace: "wsrep_node_name='db3'"
+        
+- name: update server.cnf for cluster
+  hosts: 172.30.1.114
+  gather_facts: no
+  tasks:
+    - name: replace server.cnf
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "server-id=11"
+        replace: "server-id=14"
+    - name: replace server.cnf ip
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_address='172.30.1.111'"
+        replace: "wsrep_node_address='172.30.1.114'"
+    - name: replace server.cnf node_name
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_name='db1'"
+        replace: "wsrep_node_name='db4'"
+        
+- name: update server.cnf for cluster
+  hosts: 172.30.1.115
+  gather_facts: no
+  tasks:
+    - name: replace server.cnf
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "server-id=11"
+        replace: "server-id=15"
+    - name: replace server.cnf ip
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_address='172.30.1.111'"
+        replace: "wsrep_node_address='172.30.1.115'"
+    - name: replace server.cnf node_name
+      replace:
+        path: /etc/my.cnf.d/server.cnf
+        regexp: "wsrep_node_name='db1'"
+        replace: "wsrep_node_name='db5'"
