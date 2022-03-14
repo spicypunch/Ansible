@@ -1,0 +1,30 @@
+---
+- name: server basic setting
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: uninstall mysql-server
+      yum:
+        name:
+          - mysql-server
+          - mysql
+          - mysql-devel
+        state: absent
+        
+    - name: delete directory
+      file:
+        path: /var/lib/mysql/
+        state: absent
+        
+    - name: update MariaDB.repo
+      lineinfile:
+        path: /etc/yum.repos.d/MariaDB.repo
+        line: |
+          [mariadb]
+          name = MariaDB
+          baseurl = http://yum.mariadb.org/10.0/centos7-amd64
+          gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+          gpgcheck=1
+          
+    - name: install MariaDB
+      yum: name=mariadb state=present
