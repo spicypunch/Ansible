@@ -1,6 +1,6 @@
 ---
 - name: server basic setting
-  hosts: all
+  hosts: DB
   gather_facts: no
   tasks:
     - name: uninstall mysql-server
