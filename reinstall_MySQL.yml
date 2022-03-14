@@ -26,5 +26,12 @@
           gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
           gpgcheck=1
           
-    - name: install MariaDB
-      yum: name=mariadb state=present
+    - name: install socat MariaDB Galera-cluster
+      yum:
+        name:
+          - socat
+          - MariaDB-Galera-server
+          - MariaDB-client
+          - rsync
+          - galera
+        state: latest
