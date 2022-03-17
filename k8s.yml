@@ -109,24 +109,44 @@
         
     - name: enable kubelet
       shell: systemctl enable kubelet && systemctl start kubelet
-    
-    - name: make daemon.json
-      file:
-        path: /etc/docker/daemon.json
-        state: touch
+
+
+- name: k8s Setting
+  hosts: master
+  gather_facts: no
+  tasks:
+    - name: install Cluster
+      shell: kubeadm init --token 123456.1234567890123456 --token-ttl 0 --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=192.168.187.136
+      
+    - name: make .kube directory
+      file: 
+        path: /root/.kube
+        state: directory
         owner: root
         group: root
-        mode: 644
+        mode: 0644
         
-    - name: daemon.json
+    - name: copy admin.conf
+      shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+     
+    - name: chown config
+      shell: chown root:root /root/.kube/config
+      
+    - name: insert ~/.bash_profile
       lineinfile:
-        path: /etc/docker/daemon.json
-        line: |
-          {
-          "exec-opts": ["native.cgroupdriver=systemd"],
-          "log-driver": "json-file",
-          "log-opts": {
-          "max-size": "100m"
-          },
-          "storage-driver": "overlay2"
-          }
+        path: ~/.bash_profile
+        line: export KUBECONFIG=/etc/kubernetes/admin.conf
+        
+    - name: source ~/.bash_profile
+      shell: source ~/.bash_profile
+      
+    - name: kubectl apply -f YAML
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+     
+     
+- name: k8s Setting
+  hosts: nodes
+  gather_facts: no
+  tasks:
+    - name: kubeadm join
+      shell: kubeadm join --token 123456.1234567890123456 --discovery-token-unsafe-skip-ca-verification 192.168.187.136:6443
