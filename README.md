@@ -5,6 +5,6 @@ k8s - ansible 코드를 돌리고 kubectl get nodes 명령어로 master, node1, 
 
 MySQL - Was 서버에서 사용할 Proxysql과 DB 서버에서 사용할 MariaDB, Galera-Cluster 설치
 
-Server - Web/Was/DB에 필요한 설정과 패키지 자동화
+Web_Was_DB - Web/Was/DB에 필요한 설정과 패키지 자동화
 
 reinstall_MySQL - MySQL 클러스터링 오류 시 재설치를 위한 자동화
