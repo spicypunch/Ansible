@@ -128,9 +128,6 @@
         
     - name: copy admin.conf
       shell: cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-     
-    - name: chown config
-      shell: chown root:root /root/.kube/config
       
     - name: insert ~/.bash_profile
       lineinfile:
