@@ -111,7 +111,7 @@
       shell: systemctl enable kubelet && systemctl start kubelet
 
 
-- name: k8s Setting
+- name: k8s Master Setting
   hosts: master
   gather_facts: no
   tasks:
@@ -144,7 +144,7 @@
       shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
      
      
-- name: k8s Setting
+- name: k8s Nodes Setting
   hosts: nodes
   gather_facts: no
   tasks:
