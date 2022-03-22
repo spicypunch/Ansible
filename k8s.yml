@@ -2,6 +2,7 @@
 - name: k8s Setting
   hosts: all
   gather_facts: no
+  become: True
   tasks:
     - name: add hosts
       lineinfile:
@@ -114,6 +115,7 @@
 - name: k8s Master Setting
   hosts: master
   gather_facts: no
+  become: True
   tasks:
     - name: install Cluster
       shell: kubeadm init --token 123456.1234567890123456 --token-ttl 0 --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=192.168.187.136
@@ -144,6 +146,7 @@
 - name: k8s Nodes Setting
   hosts: nodes
   gather_facts: no
+  become: True
   tasks:
     - name: kubeadm join
       shell: kubeadm join --token 123456.1234567890123456 --discovery-token-unsafe-skip-ca-verification 192.168.187.136:6443
