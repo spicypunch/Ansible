@@ -2,6 +2,7 @@
 - name: RabbitMQ setting
   hosts: all
   gather_facts: no
+  become: True
   tasks:
     - name: add hosts
       lineinfile:
@@ -79,6 +80,7 @@
 - name: get master erlang.cookie
   hosts: master
   gather_facts: no
+  become: True
   tasks:    
     - name: check file exists
       stat:
@@ -95,6 +97,7 @@
 - name: send master's cookie
   hosts: nodes
   gather_facts: no
+  become: True
   tasks:     
     - name: send master's cookie
       copy:
