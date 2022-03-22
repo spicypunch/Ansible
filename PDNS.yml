@@ -1,6 +1,7 @@
 ---
 - name: PDNS Setting
   hosts: pdns
+  become:True
   gather_facts: no
   tasks:
     - name: selinux
