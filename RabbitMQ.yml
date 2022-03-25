@@ -108,6 +108,7 @@
       shell: |
         systemctl restart rabbitmq-server
         rabbitmqctl stop_app
+        rabbitmqctl reset
         rabbitmqctl join_cluster rabbit@vr-001
         rabbitmqctl start_app
         
