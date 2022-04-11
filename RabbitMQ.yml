@@ -46,14 +46,24 @@
           - net-tools
         state: latest
         
-    - name: install erlang from remote repo
+    - name: copy erlang.rpm
+      copy:
+        src: "/home/rabbitmq/erlang-22.1.3-1.el7.x86_64.rpm"
+        dest: "/root"
+
+    - name: copy rabbit.rpm
+      copy:
+        src: "/home/rabbitmq/rabbitmq-server-3.8.0-1.el7.noarch.rpm"
+        dest: "/root"
+        
+    - name: install erlang
       yum:
-        name: https://github.com/rabbitmq/erlang-rpm/releases/download/v22.1.3/erlang-22.1.3-1.el7.x86_64.rpm
+        name: erlang-22.1.3-1.el7.x86_64.rpm
         state: present
         
-    - name: install rabbitmq from remote repo
+    - name: install rabbitmq
       yum:
-        name: https://github.com/rabbitmq/rabbitmq-server/releases/download/v3.8.0-rc.1/rabbitmq-server-3.8.0.rc.1-1.el7.noarch.rpm
+        name: rabbitmq-server-3.8.0.rc.1-1.el7.noarch.rpm
         state: present
        
     - name: start rabbitmq
@@ -72,9 +82,9 @@
       shell: |
         firewall-cmd --permanent --add-port=4369/tcp
         firewall-cmd --permanent --add-port=5672/tcp
-        firewall-cmd --permanent --add-port=15672/udp
-        firewall-cmd --permanent --add-port=15674/udp
-        firewall-cmd --permanent --add-port=25672/udp
+        firewall-cmd --permanent --add-port=15672/tcp
+        firewall-cmd --permanent --add-port=15674/tcp
+        firewall-cmd --permanent --add-port=25672/tcp
         firewall-cmd --reload
 
 - name: get master erlang.cookie
