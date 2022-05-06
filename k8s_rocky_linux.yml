@@ -144,9 +144,14 @@
 
     - name: source ~/.bash_profile
       shell: source ~/.bash_profile
+      
+    - name: mv yaml
+      copy:
+        src: /root/172.16_net_calico.yaml
+        dest: /root/
 
-    - name: applu 172.16_net_calico.yaml
-      shell: kubectl apply -f /kubernetes/kubernetes_cluster/172.16_net_calico.yaml
+    - name: apply 172.16_net_calico.yaml
+      shell: kubectl apply -f /root/172.16_net_calico.yaml
 
     - name: install bash-completion
       yum: name=bash-completion state=present
